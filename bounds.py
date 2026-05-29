@@ -335,7 +335,7 @@ def emp_bentkus_quantile(delta,W,R=1,two_sided=True):
     n = W.size
     return bentkus(n, delta_1/2 if two_sided else delta_1, sig_upper, R)/sqrt(n)
 
-def feller_quantile(delta,n,sig=1,R=1,two_sided=True):
+def feller_quantile(delta,n,sig=1,R=1,two_sided=True,verbose=False):
     """Returns Feller two-sided (1-delta/2) or one-sided
     (1-delta) quantile bound for any sum
     S = sqrt(n) (1/n) sum_{i=1}^n W_i - E[W_i]
@@ -361,7 +361,8 @@ def feller_quantile(delta,n,sig=1,R=1,two_sided=True):
     imin = np.argmin(gs)
     tmin = ts[imin]
     gmin = gs[imin]
-    print(f"gmin={gmin} at t={tmin}", flush=True)
+    if verbose:
+        print(f"gmin={gmin} at t={tmin}", flush=True)
     # Error tolerance
     tol = 1e-6
     if gmin > tol:
@@ -372,7 +373,8 @@ def feller_quantile(delta,n,sig=1,R=1,two_sided=True):
         # Closest value is sufficiently close
         iminabs = np.argmin(np.abs(gs))
         tminabs = ts[iminabs]
-        print(f"gminabs={gs[iminabs]} at t={tminabs}", flush=True)
+        if verbose:
+            print(f"gminabs={gs[iminabs]} at t={tminabs}", flush=True)
         return tminabs
     else:
         # Find the smallest nonnegative value
@@ -383,7 +385,8 @@ def feller_quantile(delta,n,sig=1,R=1,two_sided=True):
         imaxneg = np.argmax(np.where(gs < 0, gs, -inf))
         closest_below = ts[imaxneg]
         gmaxneg = gs[imaxneg]
-        print(f"(gminpos,gmaxneg) = ({gminpos},{gmaxneg}) at t=({closest_above},{closest_below})", flush=True)
+        if verbose:
+            print(f"(gminpos,gmaxneg) = ({gminpos},{gmaxneg}) at t=({closest_above},{closest_below})", flush=True)
         # Search for delta between brackets
         if closest_below > closest_above:
             smaller_closest = closest_above
@@ -398,5 +401,6 @@ def feller_quantile(delta,n,sig=1,R=1,two_sided=True):
                 # Smaller solution is sufficiently close
                 return smaller_closest
         tstar = bisect(g, smaller_closest, larger_closest)
-        print(f"bisect g(t)={g(tstar)} at t={tstar}", flush=True)
+        if verbose:
+            print(f"bisect g(t)={g(tstar)} at t={tstar}", flush=True)
         return tstar
