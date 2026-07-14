@@ -2,7 +2,7 @@
 Austern and Mackey, Efficient Concentration with Gaussian Approximation.
 """
 from math import sqrt, log
-from scipy.optimize import minimize_scalar
+from scipy.optimize import shgo
 from scipy.stats import kstwo, ksone
 from ttictoc import tic,toc
 import os
@@ -119,24 +119,24 @@ def ebe(delta, n, sig_ci, p=None, R=1, two_sided=True, verbose=False, cache=None
     sig_lower = min(half_R, max(0., sig_lower))
 
     # Maximize quantile_bound(delta-prob) over [sig_lower,sig_upper]
-    # Terminate optimization early if any bound is worse than alternative
     stop_early = [False]
-    def tomin(sig):
+    def tomin(sig_arr):
         if stop_early[0]:
             return -baseline_bound
+        sig = float(np.atleast_1d(sig_arr)[0])
         # Reuse any cached gsn_wass results for this candidate
-        # sigma value
+        # sigma value.
         if sig not in cache:
             cache[sig] = {}
         q_bd = quantile_bound(delta-prob,n,p=p,sig=sig,R=R,
-                              two_sided=two_sided, cache=cache[sig])
+                            two_sided=two_sided, cache=cache[sig])
         if q_bd >= baseline_bound:
             stop_early[0] = True
         return -q_bd
 
-    mins=minimize_scalar(tomin, bounds=[sig_lower,sig_upper],
-                         method='bounded')
-    B_bound=-mins.fun
+    mins = shgo(tomin, bounds=[(sig_lower, sig_upper)])
+    B_bound = -mins.fun
+
     bound_prob = min(B_bound, baseline_bound)
 
     if False:
@@ -226,7 +226,7 @@ def ebe_ci(W, delta, R=1, verbose=False):
 
     Given independent and identically distributed W[i] in [0, R],
     returns an empirical Berry-Esseen confidence interval for mu = E[W[i]]:
-    (mu_lower, mu_upper) s.t. P(mu_lower <= mu <= mu_upper) <= delta.
+    (mu_lower, mu_upper) s.t. P(mu_lower <= mu <= mu_upper) >= 1-delta.
 
     Args:
       W - array of sample points
@@ -263,7 +263,7 @@ def ebe_ci_seq(W, ns, delta, R=1, parallel=True, verbose=False):
     Given independent and identically distributed W[i] in [0, R],
     returns arrays of lower and upper confidence empirical Berry-Esseen 
     confidence bounds mu_lower and mu_upper for mu = E[W[i]] such that 
-    P(mu_lower[j] <= mu <= mu_upper[j]) <= delta
+    P(mu_lower[j] <= mu <= mu_upper[j]) >= 1-delta
     based on the first ns[j] sample points W[0:ns[j]].
 
     Args:

@@ -770,13 +770,14 @@ def quantile_bound(delta, n, p=None, sig=1, R=1, two_sided=True, verbose=False,
         p_init = p
 
     # First, compute the Wasserstein bound
-    # min_p (1/delta)**(1/p)* [cache[p]+\|Z I(Z >= Phi^{-1}(delta))\|_p]
+    # min_p (1/delta)**(1/p)* [gsn_wass(n, p, sig, R)+sig*\|Z I(Z >= Phi^{-1}(delta))\|_p]
     wass_q = inf
     one_over_delta = 1/delta
     p = p_init
-    asymp_q = asymptotic_quantile(delta,sig=sig)
+    # Make use of quantile for a standard normal Z
+    asymp_q = asymptotic_quantile(delta,sig=1.,two_sided=True)
     while True:
-        # Look up the p-Wasserstein distance between sum S and Gaussian with
+        # Look up the p-Wasserstein distance between sum S and a Gaussian with
         # matching mean and variance
         if p not in cache:
             cache[p] = gsn_wass(n, p, sig=sig, R=R, verbose=verbose)

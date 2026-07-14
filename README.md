@@ -21,9 +21,10 @@ Replication code for [Efficient Concentration with Gaussian Approximation](https
 This code has been tested with Python 3.12.
 
 ```bash
-conda create -n gauss python=3.12
+conda create -n gauss python=3.12 --yes
 conda activate gauss
 pip install "numpy<2" scipy qmcpy matplotlib seaborn jupyterlab
+pip install scikit-build cmake
 pip install git+https://github.com/gostevehoward/confseq.git
-pip install ttictoc sympy 
+pip install ttictoc sympy multiprocess
 ```
